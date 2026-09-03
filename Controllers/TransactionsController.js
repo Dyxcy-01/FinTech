@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const { getToken, getAuthToken } = require('../AdaptToExternalAPI/ConnectToNibssByPhoenixAPI');
+const { getAuthToken } = require('../AdaptToExternalAPI/ConnectToNibssByPhoenixAPI');
 
 const dotenv = require('dotenv');
 dotenv.config();
@@ -10,7 +10,7 @@ module.exports = {
         const token = await getAuthToken();
 
         try {
-            const response = await axios.post(
+            const response = await axios.get(
                 `${process.env.NIBSS_BASE_URL}/api/account/name-enquiry/${accountNumber}`,
                 {
                     headers: {
@@ -27,7 +27,7 @@ module.exports = {
             return { error: error };
         }
     },
-
+    // initiate transfer
     transfer: async (senderAccountNo, recipientAccountNo, amount) => {
         const token = await getAuthToken();
 
@@ -40,7 +40,7 @@ module.exports = {
                     amount: amount,
                 },
                 {
-                    header: {
+                    headers: {
                         Authorization: `Bearer ${token}`,
                         "Content-Type": "application/json",
                     },

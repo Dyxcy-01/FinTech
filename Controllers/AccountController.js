@@ -33,8 +33,29 @@ module.exports = {
         } catch (error) {
             return error;
         }
-    }
+    },
+
+    // verify recipient name
+    verifyRecipientName: async (accountNumber) => {
+        const token = await getAuthToken();
+
+        try {
+            const response = await axios.get(
+                `${process.env.NIBSS_BASE_URL}/api/account/name-enquiry/${accountNumber}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json"
+                    }
+                }
+            );
+
+            if (response && response.data) {
+                return response.data;
+            }
+        } catch (error) {
+            return { error: error };
+        }
+    },
 }
-
-
 
