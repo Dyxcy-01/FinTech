@@ -23,7 +23,7 @@ module.exports = {
                     headers: {
                         // 3. Fixed authorization template string syntax
                         Authorization: `Bearer ${token}`,
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     }
                 }
             );
