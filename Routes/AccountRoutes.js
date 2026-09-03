@@ -2,11 +2,11 @@ const express = require('express');
 const router = express.Router();
 const { getAccounts, getBalance, verifyReceipientName, createAccount } = require('../Controllers/AccountController');
 
-// CREATE
+    // CREATE
 // Create account
 router.post('/createAccount', createAccount);
 
-// READ
+    // READ
 // Admin access
 router.get('/accounts', getAccounts);
 
