@@ -36,7 +36,7 @@ module.exports = {
     },
 
     // verify recipient name
-    verifyRecipientName: async (accountNumber) => {
+    verifyReceipientName: async (accountNumber) => {
         const token = await getAuthToken();
 
         try {
