@@ -6,9 +6,9 @@ dotenv.config();
 const { getAuthToken } = require('../AdaptToExternalAPI/ConnectToNibssByPhoenixAPI');
 
 module.exports = {
-    createAccount: async (kycType, kycId, dateOfBirth) => {
+    createAccount: async (req, res) => {
         try {
-            //generate token
+            const { kycType, kycId, dateOfBirth } = req.body;
             const token = await getAuthToken();
 
             // Send http request to NIBSS simulator
@@ -28,15 +28,16 @@ module.exports = {
                 }
             );
 
-            return response;
+            res.status(200).json(response.data);
 
         } catch (error) {
-            return error;
+            res.status(500).json({ error: error });
         }
     },
 
     // verify recipient name
-    verifyReceipientName: async (accountNumber) => {
+    verifyReceipientName: async (req, res) => {
+        const accountNumber = req.params.accountNo;
         const token = await getAuthToken();
 
         try {
@@ -51,11 +52,56 @@ module.exports = {
             );
 
             if (response && response.data) {
-                return response.data;
+                res.status(200).json(response.data);
             }
         } catch (error) {
-            return { error: error };
+            res.status(500).json({ error: error });
         }
     },
+
+    // get account balance
+    getBalance: async (req, res) => {
+        const userAccountNo = req.params.accountNo;
+        const token = await getAuthToken();
+
+        try {
+            const response = await axios.get(
+                `${process.env.NIBSS_BASE_URL}/api/account/balance/${userAccountNo}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json"
+                    }
+                }
+            );
+
+            res.status(200).json(response.data);
+
+        } catch (error) {
+            res.status(500).json({ error: error });
+        }
+    },
+
+    // get all accounts
+    getAccounts: async (req, res) => {
+        const token = await getAuthToken();
+
+        try {
+            const response = await axios.get(
+                `${process.env.NIBSS_BASE_URL}/api/accounts`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json"
+                    }
+                }
+            );
+
+            res.status(200).json(response.data);
+
+        } catch (error) {
+            res.status(500).json({error: error});
+        }
+    }
 }
 
