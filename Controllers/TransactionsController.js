@@ -2,6 +2,7 @@ const axios = require('axios');
 
 const { getAuthToken } = require('../AdaptToExternalAPI/ConnectToNibssByPhoenixAPI');
 const Transaction = require('../Models/Transaction');
+const Account = require('../Models/Account');
 
 const dotenv = require('dotenv');
 dotenv.config();

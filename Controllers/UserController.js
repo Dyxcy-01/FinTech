@@ -1,6 +1,7 @@
 const axios = require("axios");
 const {getAuthToken} = require("../AdaptToExternalAPI/ConnectToNibssByPhoenixAPI");
 const { User } = require("../Models/User");
+const { Account } = require("../Models/Account");
 const { createAccount } = require('../Controllers/AccountController');
 const bcrypt = require("bcryptjs");
 const dotenv = require("dotenv");
@@ -8,7 +9,7 @@ dotenv.config();
 
 module.exports = {
   // Collect registration details from the client alongside KYC data
-    createUser: async (registrationData) => {
+    createUser: async (req, res) => {
         const {
             kycType,
             kycId,
@@ -19,7 +20,7 @@ module.exports = {
             phoneNumber,
             password,
             transactionPin,
-        } = registrationData;
+        } = req.body;
 
         try {
             // Create account through NIBSS
@@ -28,6 +29,11 @@ module.exports = {
             // 4. Axios payloads always reside inside the .data object
             if (response && response.data) {//Check  if response and expected data is returned
                 const nibssData = response.data;
+
+                // collect needed account details from NIBSS response
+                const accountNumber = nibssData.accountNumber;
+                const accountName = `${nibssData.accountName}`;
+                const balance = nibssData.balance; // Initial balance is 15000 from NibssByPhoenix
 
                 // Hash passwords before storing them in your database for security
                 const salt = await bcrypt.genSalt(10);
@@ -53,23 +59,31 @@ module.exports = {
                     bankName: nibssData.bankName, // Retrieved dynamically from NIBSS
                 });
 
-                // Added await to prevent background operational race bugs
+                // save to database
                 await user.save();
 
-                return {
+                // create account
+                const account = new Account({ accountNumber, accountName, kycType, kycID, balance });
+
+                // save to database
+                await account.save();
+
+
+                // create a response object to send back to the client
+                res.status(201).json({
                     success: true,
                     message: nibssData.message,
                     accountNumber: nibssData.account.accountNumber,
-                };
+                });
             }
         } catch (error) {
             console.error("Account Creation failed:",error.response?.data || error.message,);
-            return {
+            res.status(500).json({
                 success: false,
                 error:
                 error.response?.data?.message ||
                 "Error communicating with NIBSS identity layer",
-            };
+            });
         }
     },
 };
