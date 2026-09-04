@@ -8,8 +8,9 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 module.exports = {
-    checkRecipientName: async (accountNumber) => {
+    checkRecipientName: async (req, res) => {
         const token = await getAuthToken();
+        const { accountNumber } = req.params;
 
         try {
             const response = await axios.get(
@@ -23,15 +24,16 @@ module.exports = {
             );
 
             if (response && response.data) {
-                return response.data;
+                res.status(200).json(response.data);
             }
         } catch (error) {
-            return { error: error };
+            res.status(500).json({ error: error.message });
         }
     },
     // initiate transfer
-    transfer: async (senderAccountNo, recipientAccountNo, amount) => {
+    transfer: async (req, res) => {
         const token = await getAuthToken();
+        const { senderAccountNo, recipientAccountNo, amount } = req.body;
 
         try {
             // check recipient name
@@ -64,16 +66,17 @@ module.exports = {
 
             // return response
             // if (response && response.data) {
-            return response.data;
+            res.status(200).json(response.data);
             // }
         } catch (error) {
-            return error;
+            res.status(500).json({ error: error.message });
         }
     },
 
     // internal bank transfer
-    internalTransfer: async (senderAccountNo, recipientAccountNo, amount) => {
+    internalTransfer: async (req, res) => {
         const token = await getAuthToken();
+        const { senderAccountNo, recipientAccountNo, amount } = req.body;
 
         AccountName = await this.checkRecipientName(recipientAccountNo);
 
@@ -84,7 +87,7 @@ module.exports = {
 
             // check if sender has sufficient balance
             if (senderBalance < amount) {
-                return { error: "Insufficient balance" };
+                res.status(400).json({ error: "Insufficient balance" });
             } else {
                 sender.balance -= amount;
                 await sender.save();
@@ -93,15 +96,18 @@ module.exports = {
                 const receiver = Account.findOne({ accountNumber: recipientAccountNo });
                 receiver.balance += amount;
                 await receiver.save();
+
+                res.status(200).json({ message: "Transfer successful", transactionId: `TX${Date.now()}`, amount, from: senderAccountNo, to: recipientAccountNo, status: "SUCCESS" });
             }
         } catch (error) {
-            return { error: error };
+            res.status(500).json({ error: error.message });
         }
     },
 
     // query transaction status(interbank transfer)
-    checkTransactionStatus: async (transactionId) => {
+    checkTransactionStatus: async (req, res) => {
         const token = await getAuthToken();
+        const { transactionId } = req.params;
 
         try {
             const response = await axios.get(
@@ -115,33 +121,33 @@ module.exports = {
             );
 
             // return response
-            return response.data;
+            res.status(200).json(response.data);
         } catch (error) {
-            return error;
+            res.status(500).json({ error: error.message });
         }
     },
 
     // query transaction status(interbank transfer)
-    checkTransactionStatus: async (transactionId) => {
-        const token = await getAuthToken();
+    // checkTransactionStatus: async (transactionId) => {
+    //     const token = await getAuthToken();
 
-        try {
-            const response = await axios.get(
-                `${process.env.NIBSS_BASE_URL}/api/transaction/${transactionId}`,
-                {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json"
-                },
-                },
-            );
+    //     try {
+    //         const response = await axios.get(
+    //             `${process.env.NIBSS_BASE_URL}/api/transaction/${transactionId}`,
+    //             {
+    //             headers: {
+    //                 Authorization: `Bearer ${token}`,
+    //                 "Content-Type": "application/json"
+    //             },
+    //             },
+    //         );
 
-            // return response
-            return response.data;
-        } catch (error) {
-            return error;
-        }
-    },
+    //         // return response
+    //         return response.data;
+    //     } catch (error) {
+    //         return error;
+    //     }
+    // },
 };
 
 // {     "accountNumber": "1084071287",     "accountName": "John Doe",     "bankName": "Phc bank" } 
