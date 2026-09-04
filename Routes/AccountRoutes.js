@@ -4,7 +4,7 @@ const { getAccounts, getBalance, verifyReceipientName, createAccount } = require
 
     // CREATE
 // Create account
-router.post('/createAccount', createAccount);
+router.post('/create/account', createAccount);
 
     // READ
 // Admin access
@@ -14,4 +14,4 @@ router.get('/accounts', getAccounts);
 router.get('/account/balance/:accountNo', getBalance);
 
 // verify account name
-router.get('/account/verifyAcountName/:accountNo', verifyReceipientName);
+router.get('/account/verifyAccountName/:accountNo', verifyReceipientName);
