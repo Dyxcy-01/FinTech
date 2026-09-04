@@ -1,6 +1,7 @@
 const axios = require('axios');
 
 const { getAuthToken } = require('../AdaptToExternalAPI/ConnectToNibssByPhoenixAPI');
+const Transaction = require('../Models/Transaction');
 
 const dotenv = require('dotenv');
 dotenv.config();
@@ -46,6 +47,16 @@ module.exports = {
                 },
                 },
             );
+
+            transactionId = response.data.transactionId;
+            sender = senderAccountNo;
+            receiver = recipientAccountNo;
+            amount = amount;
+            status = response.data.status;
+
+            // save transaction to database
+            const transaction = new Transaction({ transactionId, sender, receiver, amount, status });
+            await transaction.save();
 
             // return response
             // if (response && response.data) {
