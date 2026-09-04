@@ -33,6 +33,9 @@ module.exports = {
         const token = await getAuthToken();
 
         try {
+            // check recipient name
+            const accountName = await this.checkRecipientName(recipientAccountNo);
+
             const response = await axios.post(
                 `${process.env.NIBSS_BASE_URL}/api/transfer`,
                 {
@@ -64,6 +67,34 @@ module.exports = {
             // }
         } catch (error) {
             return error;
+        }
+    },
+
+    // internal bank transfer
+    internalTransfer: async (senderAccountNo, recipientAccountNo, amount) => {
+        const token = await getAuthToken();
+
+        AccountName = await this.checkRecipientName(recipientAccountNo);
+
+        try {
+            // fetch sender account details
+            const sender = Account.findOne({ accountNumber: senderAccountNo });
+            senderBalance = sender.balance;
+
+            // check if sender has sufficient balance
+            if (senderBalance < amount) {
+                return { error: "Insufficient balance" };
+            } else {
+                sender.balance -= amount;
+                await sender.save();
+
+                // fetch recipient account details
+                const receiver = Account.findOne({ accountNumber: recipientAccountNo });
+                receiver.balance += amount;
+                await receiver.save();
+            }
+        } catch (error) {
+            return { error: error };
         }
     },
 
