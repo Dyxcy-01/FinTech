@@ -15,7 +15,7 @@ const accountSchema = mongoose.Schema(
             type: String,
             required: true
         },
-        kycID: {
+        kycId: {
             type: Number,
             required: true
         },

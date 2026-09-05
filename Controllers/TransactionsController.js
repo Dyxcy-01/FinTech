@@ -10,11 +10,12 @@ dotenv.config();
 module.exports = {
     checkRecipientName: async (req, res) => {
         const token = await getAuthToken();
-        const { accountNumber } = req.params;
+        const {accountNo} = req.params;
+        console.log(`Passed account number na: ${accountNo}`);
 
         try {
             const response = await axios.get(
-                `${process.env.NIBSS_BASE_URL}/api/account/name-enquiry/${accountNumber}`,
+                `${process.env.NIBSS_BASE_URL}/api/account/name-enquiry/${accountNo}`,
                 {
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -27,7 +28,13 @@ module.exports = {
                 res.status(200).json(response.data);
             }
         } catch (error) {
-            res.status(500).json({ error: error.message });
+                if (error.response) {
+                    console.log( "NIBSS API error:", error.response.status, error.response.data );
+                    return res.status(error.response.status).json(error.response.data);
+            }
+            
+                console.log("Unexpected error:", error.message);
+                res.status(500).json({ error: error.message });
         }
     },
     // initiate transfer
@@ -36,29 +43,31 @@ module.exports = {
         const { senderAccountNo, recipientAccountNo, amount } = req.body;
 
         try {
-            // check recipient name
-            const accountName = await this.checkRecipientName(recipientAccountNo);
+            // check recipient name (I modify the related method below, to attend to api route request directly)
+            // const accountName = await this.checkRecipientName(recipientAccountNo);
+            // console.log('Recipient account name:', accountName);
 
             const response = await axios.post(
                 `${process.env.NIBSS_BASE_URL}/api/transfer`,
                 {
-                from: senderAccountNo,
-                to: recipientAccountNo,
-                amount: amount,
+                    from: senderAccountNo,
+                    to: recipientAccountNo,
+                    amount: amount,
                 },
                 {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json"
-                },
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json"
+                    },
                 },
             );
+            console.log(response.data)
 
-            transactionId = response.data.transactionId;
-            sender = senderAccountNo;
-            receiver = recipientAccountNo;
-            amount = amount;
-            status = response.data.status;
+            const transactionId = response.data.reference;
+            const sender = senderAccountNo;
+            const receiver = recipientAccountNo;
+            const status = response.data.status;
+            // amount already exist above
 
             // save transaction to database
             const transaction = new Transaction({ transactionId, sender, receiver, amount, status });
@@ -69,6 +78,12 @@ module.exports = {
             res.status(200).json(response.data);
             // }
         } catch (error) {
+            if (error.response) {
+                console.log( "NIBSS API error:", error.response.status, error.response.data );
+                return res.status(error.response.status).json(error.response.data);
+            }
+            
+            console.log("Unexpected error:", error.message);
             res.status(500).json({ error: error.message });
         }
     },

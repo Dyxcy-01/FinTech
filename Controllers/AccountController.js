@@ -1,12 +1,13 @@
 const dotenv = require('dotenv');
 dotenv.config();
 
+const axios = require('axios');
+
 const { getAuthToken } = require('../AdaptToExternalAPI/ConnectToNibssByPhoenixAPI');
 
 module.exports = {
-    createAccount: async (req, res) => {
+    createAccount: async (kycType, kycId, dateOfBirth) => {
         try {
-            const { kycType, kycId, dateOfBirth } = req.body;
             const token = await getAuthToken();
 
             // Send http request to NIBSS simulator
@@ -26,10 +27,16 @@ module.exports = {
                 }
             );
 
-            res.status(200).json(response.data);
+            return response.data;
 
         } catch (error) {
-            res.status(500).json({ error: error });
+            if (error.response) {
+                console.log("NIBSS API error:", error.response.status, error.response.data);
+                return { error: error.response.data, status: error.response.status};
+            }
+            
+            console.log("Unexpected error in createAccount:", error.message);
+            return { error: { message: error.message }, status: 500 };
         }
     },
 
@@ -76,7 +83,13 @@ module.exports = {
             res.status(200).json(response.data);
 
         } catch (error) {
-            res.status(500).json({ error: error });
+            if (error.response) {
+                console.log('Error from NIBSS: ', error.status, error.response.data);
+                return { error: error.response.data, status: error.response.status};
+            }
+
+            console.log('Unexpected error: ', error.message);
+            return { error: { message: error.message }, status: 500 };
         }
     },
 

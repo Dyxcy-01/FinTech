@@ -4,14 +4,17 @@ const { getAccounts, getBalance, verifyReceipientName, createAccount } = require
 
     // CREATE
 // Create account
-router.post('/create/account', createAccount);
+router.post('/createAccount', createAccount);
 
     // READ
 // Admin access
-router.get('/accounts', getAccounts);
+router.get('/getAllAccounts', getAccounts);
 
 // get user balance
-router.get('/account/balance/:accountNo', getBalance);
+router.get('/getBalance/:accountNo', getBalance);
 
 // verify account name
-router.get('/account/verifyAccountName/:accountNo', verifyReceipientName);
+router.get('/verifyAccountName/:accountNo', verifyReceipientName);
+
+
+module.exports = router;
