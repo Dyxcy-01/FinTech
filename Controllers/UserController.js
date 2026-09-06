@@ -4,6 +4,7 @@ const User = require("../Models/User");
 const Account = require("../Models/Account");
 const { createAccount } = require('../Controllers/AccountController');
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
 dotenv.config();
 
@@ -113,6 +114,7 @@ module.exports = {
 
             // Generate a JWT token
             const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN });
+            console.log(user._id, "User ID for JWT token generation");
             
             // For now, we'll just send a success response
             res.status(200).json({ success: true, message: "Login successful", token });

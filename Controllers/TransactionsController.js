@@ -41,13 +41,14 @@ module.exports = {
     // initiate transfer
     transfer: async (req, res) => {
         const token = await getAuthToken();
-        const { senderAccountNo, recipientAccountNo, amount, userId } =req.body;
+        const { senderAccountNo, recipientAccountNo, amount } = req.body;
+        const userId = req.user.userId; // User ID from the authenticated request
 
         // confirm if login user is the same as the sender account number
         const user = await User.findById(userId);
 
         if(user.accountNumber !== senderAccountNo) {
-            return res.status(403).json({ error: "You are not the owner of this account" });
+            return res.status(403).json({ error: "You don't have access to this account" });
         }
 
         try {
