@@ -93,4 +93,34 @@ module.exports = {
             });
         }
     },
+
+    // login user
+    loginUser: async (req, res) => {
+        const { email, password } = req.body;
+
+        try {
+            // Find user by email
+            const user = await User.findOne({ email });
+            if (!user) {
+                return res.status(404).json({ success: false, message: "User not found" });
+            }
+
+            // Compare provided password with stored hashed password
+            const isMatch = await bcrypt.compare(password, user.password);
+            if (!isMatch) {
+                return res.status(401).json({ success: false, message: "Invalid credentials" });
+            }
+
+            // Generate a JWT token
+            const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN });
+            
+            // For now, we'll just send a success response
+            res.status(200).json({ success: true, message: "Login successful", token });
+
+        } catch (error) {
+            console.error("Login failed:", error);
+            res.status(500).json({ success: false, error: error.message });
+        }
+    }
+
 };
