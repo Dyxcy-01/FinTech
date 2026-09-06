@@ -3,6 +3,7 @@ const axios = require('axios');
 const { getAuthToken } = require('../AdaptToExternalAPI/ConnectToNibssByPhoenixAPI');
 const Transaction = require('../Models/Transaction');
 const Account = require('../Models/Account');
+const User = require('../Models/User');
 
 const dotenv = require('dotenv');
 dotenv.config();
@@ -40,7 +41,14 @@ module.exports = {
     // initiate transfer
     transfer: async (req, res) => {
         const token = await getAuthToken();
-        const { senderAccountNo, recipientAccountNo, amount } = req.body;
+        const { senderAccountNo, recipientAccountNo, amount, userId } =req.body;
+
+        // confirm if login user is the same as the sender account number
+        const user = await User.findById(userId);
+
+        if(user.accountNumber !== senderAccountNo) {
+            return res.status(403).json({ error: "You are not the owner of this account" });
+        }
 
         try {
             // check recipient name (I modify the related method below, to attend to api route request directly)
