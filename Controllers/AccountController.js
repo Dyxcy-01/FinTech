@@ -2,6 +2,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const axios = require('axios');
+const User = require('../Models/User');
 
 const { getAuthToken } = require('../AdaptToExternalAPI/ConnectToNibssByPhoenixAPI');
 
@@ -68,6 +69,14 @@ module.exports = {
     getBalance: async (req, res) => {
         const userAccountNo = req.params.accountNo;
         const token = await getAuthToken();
+        const userId = req.user.userId; // User ID from the authenticated request
+        
+        // confirm if login user is the same as the sender account number
+        const user = await User.findById(userId);
+
+        if(user.accountNumber != userAccountNo) {
+            return res.status(403).json({ error: "You don't have access to this account" });
+        }
 
         try {
             const response = await axios.get(
